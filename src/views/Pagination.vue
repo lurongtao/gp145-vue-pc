@@ -5,6 +5,7 @@
     :page-size-opts="[5, 10, 20]"
     :show-sizer="true"
     @on-change="handleChange"
+    placement="top"
     @on-page-size-change="handlePageSizeChange"
     class="page"
   />
@@ -23,7 +24,7 @@ export default {
     }
   },
 
-  mounted() {
+  created() {
     this.$watch(
       () => {
         this.$emit('onPageInfo', {

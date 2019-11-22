@@ -18,6 +18,7 @@
 import { Table, Button } from 'view-design'
 import Pagination from './Pagination'
 import { get } from '../utils/http'
+import _ from 'lodash'
 export default {
   data() {
     return {
@@ -62,19 +63,17 @@ export default {
           align: "center"
         }
       ],
-      data: []
+      data: [],
+      resource: [],
+      pageNo: 1,
+      pageSize: 10
     };
   },
 
-  created() {
-    this.pageNo = 1,
-    this.pageSize = 10
-  },
-
   async mounted() {
-    console.log(this.pageNo, this.pageSize)
     let result = await get('/api/position?start=0&count=32')
-    this.data = result.list
+    this.resource = result.list
+    this.data = _.chunk(this.resource, this.pageSize)[this.pageNo - 1]
   },
 
   methods: {
@@ -92,10 +91,20 @@ export default {
       this.pageSize = pageSize
     }
   },
+
   components: {
     Table,
     Button,
     Pagination
+  },
+
+  watch: {
+    pageNo() {
+      this.data = _.chunk(this.resource, this.pageSize)[this.pageNo - 1]
+    },
+    pageSize() {
+      this.data = _.chunk(this.resource, this.pageSize)[0]
+    }
   }
 };
 </script>
