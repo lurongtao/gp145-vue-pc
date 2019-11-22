@@ -1,6 +1,11 @@
 <template>
   <Page 
-    :total="100"
+    :total="32"
+    :page-size="pageSize"
+    :page-size-opts="[5, 10, 20]"
+    :show-sizer="true"
+    @on-change="handleChange"
+    @on-page-size-change="handlePageSizeChange"
     class="page"
   />
 </template>
@@ -9,8 +14,37 @@
 import { Page } from 'view-design'
 
 export default {
+  name: 'pagination',
+
+  data() {
+    return {
+      pageNo: 1,
+      pageSize: 10
+    }
+  },
+
+  mounted() {
+    this.$watch(
+      () => {
+        this.$emit('onPageInfo', {
+          pageNo: this.pageNo,
+          pageSize: this.pageSize
+        })
+      }
+    )
+  },
+
   components: {
     Page
+  },
+
+  methods: {
+    handleChange(pageNo) {
+      this.pageNo = pageNo
+    },
+    handlePageSizeChange(pageSize) {
+      this.pageSize = pageSize
+    }
   }
 }
 </script>
