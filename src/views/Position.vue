@@ -19,6 +19,7 @@
       v-model="showModal"
       title="添加职位"
       :width="800"
+      @on-ok="handleOkClick"
     >
       <Form :model="formData" ref="formValidate" :label-width="80">
         <FormItem label="公司LOGO">
@@ -43,13 +44,13 @@
           <Input v-model="formData.companyName" placeholder="请输入公司名" />
         </FormItem>
         <FormItem label="职位名称">
-          <Input placeholder="请输入职位名" />
+          <Input v-model="formData.positionName" placeholder="请输入职位名" />
         </FormItem>
         <FormItem label="招聘城市">
-          <Input placeholder="请输入招聘城市" />
+          <Input v-model="formData.city" placeholder="请输入招聘城市" />
         </FormItem>
         <FormItem label="薪资">
-          <Input placeholder="请输入薪资" />
+          <Input v-model="formData.salary" placeholder="请输入薪资" />
         </FormItem>
         <FormItem label="发布时间">
           <Row>
@@ -72,8 +73,10 @@
 </template>
 <script>
 import Pagination from './Pagination'
-import { get } from '../utils/http'
+import { get, post } from '../utils/http'
 import _ from 'lodash'
+import moment from 'moment'
+
 export default {
   data() {
     return {
@@ -82,7 +85,8 @@ export default {
         positionName: '',
         city: '',
         salary: '',
-        datetime: ''
+        datetime: '',
+        companyLogo: ''
       },
       columns: [
         {
@@ -134,7 +138,7 @@ export default {
       loadingStatus: false,
       insideSrc: '',
       date: new Date(),
-      time: new Date() 
+      time: new Date()
     };
   },
 
@@ -186,15 +190,35 @@ export default {
         this.$Message.success("Success");
       }, 1500);
     },
-    handleSucc(response, file, fileList) {
-      console.log(file)
+    async handleSucc(response, file, fileList) {
+      let ret = response.ret
+      if ( ret ) {
+        let filename = response.data.filename
+        this.formData.companyLogo = filename
+        this.file = null
+      } else {
+        this.$Message.error("图片上传失败.");
+      }
     },
 
     handleDateChange(date) {
       this.formData.datetime = date + this.time
     },
+
     handleTimeChange(time) {
       this.formData.datetime = this.date + time
+    },
+
+    async handleOkClick() {
+      if (this.formData.datetime === '') {
+        this.formData.datetime = moment().format('YYYY-MM-DD, HH:mm:ss');
+      }
+      if (this.formData.companyLogo) {
+        let result = await post('/api/position', this.formData)
+        this.$router.replace('/position?_t=' + new Date().getTime())
+      } else {
+        this.$Message.error('error.')
+      }
     }
   },
 
