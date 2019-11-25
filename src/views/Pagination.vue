@@ -12,8 +12,6 @@
 </template>
 
 <script>
-import { Page } from 'view-design'
-
 export default {
   name: 'pagination',
 
@@ -33,10 +31,6 @@ export default {
         })
       }
     )
-  },
-
-  components: {
-    Page
   },
 
   methods: {

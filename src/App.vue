@@ -95,7 +95,7 @@
             </Breadcrumb>
           </Header>
           <Content :style="{margin: '20px', background: '#fff', minHeight: '260px'}">
-            <router-view></router-view>
+            <router-view @onRouteChange="handleRouteChange"></router-view>
           </Content>
         </Layout>
       </Layout>
@@ -134,6 +134,14 @@ export default {
   methods: {
     collapsedSider() {
       this.$refs.side1.toggleCollapse();
+    },
+
+    handleRouteChange(to) {
+      let map = {
+        'position': '1-2',
+        'home': '1-1'
+      }
+      this.currentName = map[to.name]
     }
   },
   components: {
@@ -148,14 +156,15 @@ export default {
     Breadcrumb,
     BreadcrumbItem
   },
-  watch: {
-    $route(to) {
-      let map = {
-        'position': '1-2',
-        'home': '1-1'
-      }
-      this.currentName = map[to.name]
+
+  beforeRouteEnter (to, from, next) {
+    console.log(0)
+    let map = {
+      'position': '1-2',
+      'home': '1-1'
     }
+    console.log(this)
+    this.currentName = map[to.name]
   }
 };
 </script>

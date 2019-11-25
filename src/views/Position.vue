@@ -1,6 +1,9 @@
 <template>
   <div>
     <Table border :columns="columns" :data="data">
+      <div slot="header">
+        <Button @click="addPosition" type="success" style="margin-left: 5px">添加职位</Button>
+      </div>
       <template slot-scope="{ row }">
         <strong>{{ row.name }}</strong>
       </template>
@@ -12,16 +15,75 @@
         <Pagination @onPageInfo="handlePageInfo"></Pagination>
       </div>
     </Table>
+    <Modal
+      v-model="showModal"
+      title="添加职位"
+      :width="800"
+    >
+      <Form :model="formData" ref="formValidate" :label-width="80">
+        <FormItem label="公司LOGO">
+          <Upload 
+            name="companyLogo"
+            :before-upload="handleUpload" 
+            action="/api/position/upload"
+            :on-success="handleSucc"
+          >
+            <Button icon="ios-cloud-upload-outline">点击上传图片</Button>
+          </Upload>
+          <div v-if="file !== null">
+            <img :src="insideSrc" alt="" style="width: 60px; height: 60px;" />
+            <!-- <Button
+              type="text"
+              @click="upload"
+              :loading="loadingStatus"
+            >{{ loadingStatus ? 'Uploading' : 'Click to upload' }}</Button> -->
+          </div>
+        </FormItem>
+        <FormItem label="公司名称">
+          <Input v-model="formData.companyName" placeholder="请输入公司名" />
+        </FormItem>
+        <FormItem label="职位名称">
+          <Input placeholder="请输入职位名" />
+        </FormItem>
+        <FormItem label="招聘城市">
+          <Input placeholder="请输入招聘城市" />
+        </FormItem>
+        <FormItem label="薪资">
+          <Input placeholder="请输入薪资" />
+        </FormItem>
+        <FormItem label="发布时间">
+          <Row>
+            <Col span="6">
+              <FormItem prop="date">
+                <DatePicker :value="date" @on-change="handleDateChange" type="date" placeholder="Select date"></DatePicker>
+              </FormItem>
+            </Col>
+            <Col span="2" style="text-align: center">-</Col>
+            <Col span="11">
+              <FormItem prop="time">
+                <TimePicker :value="time" @on-change="handleTimeChange" type="time" placeholder="Select time"></TimePicker>
+              </FormItem>
+            </Col>
+          </Row>
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 <script>
-import { Table, Button } from 'view-design'
 import Pagination from './Pagination'
 import { get } from '../utils/http'
 import _ from 'lodash'
 export default {
   data() {
     return {
+      formData: {
+        companyName: '',
+        positionName: '',
+        city: '',
+        salary: '',
+        datetime: ''
+      },
       columns: [
         {
           title: "公司logo",
@@ -66,7 +128,13 @@ export default {
       data: [],
       resource: [],
       pageNo: 1,
-      pageSize: 10
+      pageSize: 10,
+      showModal: false,
+      file: null,
+      loadingStatus: false,
+      insideSrc: '',
+      date: new Date(),
+      time: new Date() 
     };
   },
 
@@ -74,6 +142,12 @@ export default {
     let result = await get('/api/position?start=0&count=32')
     this.resource = result.list
     this.data = _.chunk(this.resource, this.pageSize)[this.pageNo - 1]
+  },
+
+  beforeRouteEnter (to, from, next) {
+    next((vm) => {
+      vm.$emit('onRouteChange', to)
+    })
   },
 
   methods: {
@@ -89,13 +163,39 @@ export default {
     handlePageInfo({ pageNo, pageSize }) {
       this.pageNo = pageNo
       this.pageSize = pageSize
-    }
-  },
+    },
+    addPosition() {
+      this.showModal = true
+    },
+    handleUpload(file) {
+      this.file = file;
 
-  components: {
-    Table,
-    Button,
-    Pagination
+      // 转换为base64
+      const reader = new FileReader()
+      // 将读取到的文件编码成Data URL
+      reader.readAsDataURL(file)
+      reader.onload = (event) => {
+        this.insideSrc = event.srcElement.result
+      }
+    },
+    upload() {
+      this.loadingStatus = true;
+      setTimeout(() => {
+        this.file = null;
+        this.loadingStatus = false;
+        this.$Message.success("Success");
+      }, 1500);
+    },
+    handleSucc(response, file, fileList) {
+      console.log(file)
+    },
+
+    handleDateChange(date) {
+      this.formData.datetime = date + this.time
+    },
+    handleTimeChange(time) {
+      this.formData.datetime = this.date + time
+    }
   },
 
   watch: {
@@ -105,6 +205,10 @@ export default {
     pageSize() {
       this.data = _.chunk(this.resource, this.pageSize)[0]
     }
+  },
+
+  components: {
+    Pagination
   }
 };
 </script>
